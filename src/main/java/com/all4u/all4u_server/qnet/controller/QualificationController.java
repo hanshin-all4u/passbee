@@ -21,4 +21,5 @@ public class QualificationController {
         int saved = service.importPage(page, size);
         return "saved: " + saved;
     }
+
 }
