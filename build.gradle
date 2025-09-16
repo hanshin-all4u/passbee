@@ -34,7 +34,13 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12'
+
+	// SpringDoc에서 commons-lang3의 취약한 버전을 제외하고,
+	// 안전한 버전을 직접 명시하여 사용합니다.
+	implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12') {
+		exclude group: 'org.apache.commons', module: 'commons-lang3'
+	}
+	implementation 'org.apache.commons:commons-lang3:3.18.0'
 }
 
 tasks.named('test') {

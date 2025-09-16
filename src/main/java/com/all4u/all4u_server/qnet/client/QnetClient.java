@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -15,15 +16,14 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class QnetClient {
     private final RestTemplate restTemplate;
-    private final XmlMapper xmlMapper = new XmlMapper();
+    private final XmlMapper xmlMapper;
 
-    @Value("${external.qnet.service-key}") private String serviceKey;
+    @Value("${external.qnet.service-key}")
+    private String serviceKey;
 
     public <T> QnetXmlBase<T> get(URI uri, Class<T> itemClass) {
         ResponseEntity<String> res = restTemplate.getForEntity(uri, String.class);
         try {
-            // 공통 래퍼에 itemClass를 주입해도 되지만, 단순히 문자열→제네릭 래퍼로 바인딩
-            // (Item 타입 필드는 런타임에 자동 매핑됨)
             return xmlMapper.readValue(res.getBody(),
                     xmlMapper.getTypeFactory().constructParametricType(QnetXmlBase.class, itemClass));
         } catch (Exception e) {

@@ -2,36 +2,55 @@ package com.all4u.all4u_server.qnet.service;
 
 import com.all4u.all4u_server.qnet.client.QnetClient;
 import com.all4u.all4u_server.qnet.dto.common.QnetXmlBase;
+import com.all4u.all4u_server.qnet.dto.stat.GradPiExamItem;
 import com.all4u.all4u_server.qnet.dto.stat.TotalExamItem;
+import com.all4u.all4u_server.stat.entity.StatGradePiExam;
 import com.all4u.all4u_server.stat.entity.StatTotal;
+import com.all4u.all4u_server.stat.repository.StatGradePiExamRepository;
 import com.all4u.all4u_server.stat.repository.StatTotalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class StatService {
     private final QnetClient qnetClient;
     private final StatTotalRepository totalRepo;
+    private final StatGradePiExamRepository statGradePiExamRepository;
 
-    @Value("${external.qnet.stat-base-url}") private String statBase;
+    @Value("${external.qnet.base-url}")
+    private String baseUrl;
+
+    @Value("${external.qnet.endpoints.total-exam}")
+    private String totalExamEndpoint;
+
+    @Value("${external.qnet.endpoints.grad-pi-exam}")
+    private String gradPiExamEndpoint;
 
     @Transactional
     public int importTotal(int baseYear) {
-        URI uri = URI.create(String.format(
-                "%s/getTotExamList?baseYY=%d&%s", statBase, baseYear, qnetClient.keyParam()
-        ));
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(baseUrl + "/" + totalExamEndpoint)
+                .queryParam("serviceKey", qnetClient.encode(qnetClient.keyParam().split("=")[1]))
+                .queryParam("baseYY", baseYear)
+                .build()
+                .toUri();
         QnetXmlBase<TotalExamItem> resp = qnetClient.get(uri, TotalExamItem.class);
 
-        var item = resp.getBody().getItems().getItem().getFirst(); // 1건만 옴
+        if (!"00".equals(resp.getHeader().getResultCode())) {
+            throw new IllegalStateException("Q-net API error: " + resp.getHeader().getResultMsg());
+        }
+
+        var item = resp.getBody().getItems().getItem().getFirst();
         StatTotal row = new StatTotal();
         row.setBaseYear(baseYear);
 
-        // 필드 매핑
         row.setPilrccnt1(item.getPilrccnt1()); row.setPilrccnt2(item.getPilrccnt2());
         row.setPilrccnt3(item.getPilrccnt3()); row.setPilrccnt4(item.getPilrccnt4());
         row.setPilrccnt5(item.getPilrccnt5()); row.setPilrccnt6(item.getPilrccnt6());
@@ -50,5 +69,36 @@ public class StatService {
 
         totalRepo.save(row);
         return 1;
+    }
+
+    @Transactional
+    public int importGradPiExam(int baseYear) {
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(baseUrl + "/" + gradPiExamEndpoint)
+                .queryParam("serviceKey", qnetClient.encode(qnetClient.keyParam().split("=")[1]))
+                .queryParam("baseYY", baseYear)
+                .build()
+                .toUri();
+
+        QnetXmlBase<GradPiExamItem> resp = qnetClient.get(uri, GradPiExamItem.class);
+
+        if (!"00".equals(resp.getHeader().getResultCode())) {
+            throw new IllegalStateException("Q-net API error: " + resp.getHeader().getResultMsg());
+        }
+
+        int count = 0;
+        if (resp.getBody() != null && resp.getBody().getItems() != null && resp.getBody().getItems().getItem() != null) {
+            for (GradPiExamItem item : resp.getBody().getItems().getItem()) {
+                var row = StatGradePiExam.builder()
+                        .baseYear(baseYear)
+                        .gradeName(item.getGradename())
+                        .y1(item.getStatisyy1()).y2(item.getStatisyy2()).y3(item.getStatisyy3())
+                        .y4(item.getStatisyy4()).y5(item.getStatisyy5()).y6(item.getStatisyy6())
+                        .build();
+                statGradePiExamRepository.save(row);
+                count++;
+            }
+        }
+        return count;
     }
 }

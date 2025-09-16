@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -18,25 +19,34 @@ public class StatGradeService {
     private final QnetClient qnetClient;
     private final StatGradePiExamRepository repo;
 
-    @Value("${external.qnet.stat-base-url}") private String statBase;
+    @Value("${external.qnet.base-url}")
+    private String baseUrl;
+
+    @Value("${external.qnet.endpoints.grad-pi-exam}")
+    private String gradPiExamEndpoint;
 
     @Transactional
     public int importGradPiExam(int baseYear) {
-        URI uri = URI.create(String.format(
-                "%s/getGradPiExamList?baseYY=%d&%s", statBase, baseYear, qnetClient.keyParam()
-        ));
+        URI uri = UriComponentsBuilder
+                .fromHttpUrl(baseUrl + "/" + gradPiExamEndpoint)
+                .queryParam("serviceKey", qnetClient.encode(qnetClient.keyParam().split("=")[1]))
+                .queryParam("baseYY", baseYear)
+                .build()
+                .toUri();
         QnetXmlBase<GradPiExamItem> resp = qnetClient.get(uri, GradPiExamItem.class);
 
         int count = 0;
-        for (var item : resp.getBody().getItems().getItem()) {
-            var row = StatGradePiExam.builder()
-                    .baseYear(baseYear)
-                    .gradeName(item.getGradename())
-                    .y1(item.getStatisyy1()).y2(item.getStatisyy2()).y3(item.getStatisyy3())
-                    .y4(item.getStatisyy4()).y5(item.getStatisyy5()).y6(item.getStatisyy6())
-                    .build();
-            repo.save(row);
-            count++;
+        if (resp.getBody() != null && resp.getBody().getItems() != null && resp.getBody().getItems().getItem() != null) {
+            for (var item : resp.getBody().getItems().getItem()) {
+                var row = StatGradePiExam.builder()
+                        .baseYear(baseYear)
+                        .gradeName(item.getGradename())
+                        .y1(item.getStatisyy1()).y2(item.getStatisyy2()).y3(item.getStatisyy3())
+                        .y4(item.getStatisyy4()).y5(item.getStatisyy5()).y6(item.getStatisyy6())
+                        .build();
+                repo.save(row);
+                count++;
+            }
         }
         return count;
     }
