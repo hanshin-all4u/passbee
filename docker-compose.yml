@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: passbee
+      MYSQL_USER: passbee
+      MYSQL_PASSWORD: passbee
+    ports:
+      - "3307:3306"        # ← 호스트 3307
+    command:
+      # ↓↓↓ 이 줄(문제 원인) 지우기!
+      # - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --lower_case_table_names=1
+    volumes:
+      - dbdata:/var/lib/mysql
+volumes:
+  dbdata:

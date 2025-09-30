@@ -1,48 +1,13 @@
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3307/passbee?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root1234!!
-    driver-class-name: com.mysql.cj.jdbc.Driver
+  application.name: passbee-api
+  profiles:
+    active: dev
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+server:
+  port: 8080
 
-  jackson:
-    deserialization:
-      fail-on-unknown-properties: false
-
-external:
-  qnet:
-    base-url: "http://openapi.q-net.or.kr/api/service/rest"
-    service-key: "" // 공공데이터포털의 본인 디코딩 키
-
-    endpoints:
-      # 1) 국가기술자격 종목 정보(종목 기본 목록)  ─> license 채우기
-      qualifications: "InquiryListNationalQualifcationSVC/getList"
-
-      # 2) 국가자격 시험교시 과목 정보          ─> exams.notes(과목요약) 저장
-      examSubjects: "InquiryQualExamSchduleSVC/getQualExamSubjectList"
-
-      # 3) 실기시험 지참물 정보                 ─> exams.notes(지참물) 저장
-      practicalItems: "InquiryQualPracNecessarySVC/getList"
-
-      # 4) 자격정보 인정 기관 정보              ─> license.agency 업데이트
-      agencies: "InquiryQualAgencyInfoSVC/getList"
-
-      # 5) 거주지별 기술자격 시험접수 현황       ─> statistics(라운드/간단지표) 저장
-      regionalReception: "InquiryRegionalReceptionStatsSVC/getList"
-
-      # 6) 국가기술자격 통계 정보               ─> statistics.passRate 등 저장
-      stats: "InquiryQualStatsSVC/getList"
-
-      # 7) 연도별·회별 원서 점수 분포           ─> statistics(보조지표, notes) 저장
-      scoreDist: "InquiryScoreDistributionSVC/getList"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,mappings
