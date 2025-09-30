@@ -3,39 +3,73 @@ package com.all4u.all4u_server.qnet.client;
 import com.all4u.all4u_server.qnet.dto.common.QnetXmlBase;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class QnetClient {
-    private final RestTemplate restTemplate;
     private final XmlMapper xmlMapper;
 
     @Value("${external.qnet.service-key}")
     private String serviceKey;
 
-    public <T> QnetXmlBase<T> get(URI uri, Class<T> itemClass) {
-        ResponseEntity<String> res = restTemplate.getForEntity(uri, String.class);
+    @Value("${external.qnet.base-url}")
+    private String baseUrl;
+
+    public <T> QnetXmlBase<T> get(String endpoint, Map<String, String> params, Class<T> itemClass) {
+        String responseBody = "";
         try {
-            return xmlMapper.readValue(res.getBody(),
+            // 파라미터를 URL 쿼리 스트링으로 변환
+            String queryParams = params.entrySet().stream()
+                    .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
+                    .collect(Collectors.joining("&"));
+
+            String urlString = String.format("%s/%s?ServiceKey=%s&%s",
+                    baseUrl, endpoint, encode(serviceKey), queryParams);
+
+            URL url = new URL(urlString);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/xml");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode < 200 || responseCode >= 300) {
+                log.error("HTTP GET request failed for URL: {} with response code: {}", urlString, responseCode);
+                return null;
+            }
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                responseBody = br.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
+            conn.disconnect();
+
+            if (responseBody.isEmpty()) {
+                log.warn("Empty response body for URL: {}", urlString);
+                return null;
+            }
+
+            return xmlMapper.readValue(responseBody,
                     xmlMapper.getTypeFactory().constructParametricType(QnetXmlBase.class, itemClass));
+
         } catch (Exception e) {
-            throw new IllegalStateException("Q-net 응답 파싱 실패: " + e.getMessage(), e);
+            log.error("Failed to process Q-net response for endpoint: {}. Body: {}", endpoint, responseBody, e);
+            throw new IllegalStateException("Q-net 응답 처리 실패: " + e.getMessage(), e);
         }
     }
 
-    public String encode(String s) {
+    private String encode(String s) {
         return URLEncoder.encode(s, StandardCharsets.UTF_8);
-    }
-
-    public String keyParam() {
-        return "ServiceKey=" + encode(serviceKey);
     }
 }

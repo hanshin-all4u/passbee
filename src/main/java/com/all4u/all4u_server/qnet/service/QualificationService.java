@@ -1,57 +1,35 @@
 package com.all4u.all4u_server.qnet.service;
 
-import com.all4u.all4u_server.qnet.client.QnetClient;
 import com.all4u.all4u_server.qnet.dto.QualificationItem;
-import com.all4u.all4u_server.qnet.dto.common.QnetXmlBase;
 import com.all4u.all4u_server.qnet.entity.Qualification;
 import com.all4u.all4u_server.qnet.repository.QualificationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QualificationService {
 
     private final QualificationRepository repository;
-    private final QnetClient qnetClient;
-
-    @Value("${external.qnet.base-url}")
-    private String baseUrl;
-
-    @Value("${external.qnet.endpoints.qualifications}")
-    private String qualificationsEndpoint;
+    private final QnetDataService qnetDataService; // QnetClient 의존성을 QnetDataService로 변경합니다.
 
     @Transactional
     public int importPage(int pageNo, int numOfRows) {
-        URI uri = UriComponentsBuilder
-                .fromHttpUrl(baseUrl + "/" + qualificationsEndpoint)
-                .queryParam("serviceKey", qnetClient.encode(qnetClient.keyParam().split("=")[1]))
-                .queryParam("_type", "xml")
-                .queryParam("pageNo", pageNo)
-                .queryParam("numOfRows", numOfRows)
-                .build()
-                .toUri();
+        // QnetDataService를 통해 API를 호출합니다.
+        List<QualificationItem> items = qnetDataService.getQualifications(pageNo, numOfRows);
 
-        QnetXmlBase<QualificationItem> resp = qnetClient.get(uri, QualificationItem.class);
-
-        if (!"00".equals(resp.getHeader().getResultCode())) {
-            throw new IllegalStateException("Q-net API error: " + resp.getHeader().getResultMsg());
+        if (items == null || items.isEmpty()) {
+            return 0;
         }
 
-        List<Qualification> toSave = new ArrayList<>();
-        if (resp.getBody() != null &&
-                resp.getBody().getItems() != null &&
-                resp.getBody().getItems().getItem() != null) {
-
-            for (QualificationItem item : resp.getBody().getItems().getItem()) {
+        for (QualificationItem item : items) {
+            // 이미 저장된 데이터인지 확인하고, 없으면 새로 저장합니다.
+            repository.findById(item.getJmcd()).orElseGet(() -> {
                 Qualification q = new Qualification();
                 q.setJmcd(item.getJmcd());
                 q.setJmfldnm(item.getJmfldnm());
@@ -63,10 +41,9 @@ public class QualificationService {
                 q.setQualgbnm(item.getQualgbnm());
                 q.setSeriescd(item.getSeriescd());
                 q.setSeriesnm(item.getSeriesnm());
-                toSave.add(q);
-            }
+                return repository.save(q);
+            });
         }
-        repository.saveAll(toSave);
-        return toSave.size();
+        return items.size();
     }
 }
