@@ -21,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import java.time.Year;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger; // AtomicInteger import 추가
 
 @Slf4j
 @Component
@@ -41,7 +42,7 @@ public class ScheduledDataCollector {
             enrichLicenseDetails();
             collectAgencies();
             collectStatistics();
-            log.info("Scheduled data collection process finished."); // 로그 메시지 수정
+            log.info("Scheduled data collection process finished.");
         } catch (Exception e) {
             log.error("Scheduled data collection failed", e);
         }
@@ -61,7 +62,7 @@ public class ScheduledDataCollector {
 
             log.info("Page {} of qualifications found {} items.", pageNo, items.size());
             for (QualificationItem item : items) {
-                licenseRepository.findByJmcd(item.getJmcd()).orElseGet(() -> {
+                if (!licenseRepository.existsById(item.getJmcd())) {
                     License license = License.builder()
                             .jmcd(item.getJmcd()).jmfldnm(item.getJmfldnm())
                             .seriescd(item.getSeriescd()).seriesnm(item.getSeriesnm())
@@ -69,14 +70,14 @@ public class ScheduledDataCollector {
                             .mdobligfldcd(item.getMdobligfldcd()).mdobligfldnm(item.getMdobligfldnm())
                             .obligfldcd(item.getObligfldcd()).obligfldnm(item.getObligfldnm())
                             .build();
-                    return licenseRepository.save(license);
-                });
+                    licenseRepository.save(license);
+                }
             }
             totalSavedCount += items.size();
             pageNo++;
             Thread.sleep(500);
         }
-        log.info("===== 1. Finished collecting qualifications. Total saved: {} =====", totalSavedCount);
+        log.info("===== 1. Finished collecting qualifications. Total processed: {} =====", totalSavedCount);
     }
 
     @Transactional
@@ -88,7 +89,8 @@ public class ScheduledDataCollector {
             return;
         }
 
-        int enrichedCount = 0;
+        // int 대신 AtomicInteger 사용
+        AtomicInteger enrichedCount = new AtomicInteger(0);
         for (License license : licenses) {
             if (license.getSummary() == null) {
                 List<QualitativeInfoItem> details = qnetDataService.getQualitativeInfo(license.getSeriescd());
@@ -101,14 +103,15 @@ public class ScheduledDataCollector {
                                 license.setJob(detail.getJob());
                                 license.setCareer(detail.getCareer());
                                 licenseRepository.save(license);
+                                // AtomicInteger의 값을 1 증가시킴
+                                enrichedCount.incrementAndGet();
                                 log.info("Enriched: {}", license.getJmfldnm());
                             });
-                    enrichedCount++;
                 }
                 Thread.sleep(500);
             }
         }
-        log.info("===== 2. Finished enriching license details. Total enriched: {} =====", enrichedCount);
+        log.info("===== 2. Finished enriching license details. Total enriched: {} =====", enrichedCount.get());
     }
 
     @Transactional
@@ -126,11 +129,14 @@ public class ScheduledDataCollector {
 
             log.info("Page {} of agencies found {} items.", pageNo, items.size());
             for (AgencyItem item : items) {
-                Agency agency = Agency.builder()
-                        .agencyName(item.getRcogInstiNm())
-                        .recognitionRate(item.getCrerRcogRate())
-                        .build();
-                agencyRepository.save(agency);
+                if (!agencyRepository.existsById(item.getRcogInstiCd())) {
+                    Agency agency = Agency.builder()
+                            .rcogInstiCd(item.getRcogInstiCd())
+                            .agencyName(item.getRcogInstiNm())
+                            .recognitionRate(item.getCrerRcogRate())
+                            .build();
+                    agencyRepository.save(agency);
+                }
             }
             totalSavedCount += items.size();
             pageNo++;
@@ -212,8 +218,11 @@ public class ScheduledDataCollector {
     }
 
     private void saveGradeStats(int year, String type, List<GradePassStatItem> items) {
+        if (items == null) {
+            log.warn("GradeStats for type '{}' is null. Skipping.", type);
+            return;
+        }
         log.info("Found {} items for GradeStats (Type: {}).", items.size(), type);
-        if (CollectionUtils.isEmpty(items)) return;
         items.forEach(item -> {
             GradeStat stat = new GradeStat(null, year, item.getGradename(), type,
                     item.getStatisyy1(), item.getStatisyy2(), item.getStatisyy3(),

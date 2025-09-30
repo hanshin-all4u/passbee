@@ -41,7 +41,8 @@ public class ExamService {
 
         List<ExamSubjectItem> items = resp.getBody().getItems().getItem();
         for (ExamSubjectItem item : items) {
-            Optional<License> licenseOpt = licenseRepository.findByJmcd(jmcd);
+            // 이 부분을 findByJmcd에서 findById로 변경합니다.
+            Optional<License> licenseOpt = licenseRepository.findById(jmcd);
             if (licenseOpt.isPresent()) {
                 Exam exam = new Exam();
                 exam.setLicense(licenseOpt.get());

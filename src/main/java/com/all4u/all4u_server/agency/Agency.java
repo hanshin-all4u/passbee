@@ -15,8 +15,7 @@ import lombok.*;
 public class Agency extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long agencyId;
+    private String rcogInstiCd; // PK로 변경
 
     @Column(columnDefinition = "TEXT")
     private String agencyName; // 기관명

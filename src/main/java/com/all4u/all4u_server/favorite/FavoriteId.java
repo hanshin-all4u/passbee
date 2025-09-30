@@ -2,7 +2,6 @@ package com.all4u.all4u_server.favorite;
 
 import jakarta.persistence.Embeddable;
 import lombok.*;
-
 import java.io.Serializable;
 
 @Getter @Setter
@@ -10,5 +9,5 @@ import java.io.Serializable;
 @Embeddable
 public class FavoriteId implements Serializable {
     private Long userId;
-    private Integer licenseId;
+    private String jmcd; // Integer licenseId -> String jmcd
 }

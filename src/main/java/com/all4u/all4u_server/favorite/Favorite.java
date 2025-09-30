@@ -20,8 +20,8 @@ public class Favorite extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @MapsId("licenseId")
+    @MapsId("jmcd") // "licenseId" -> "jmcd"
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "license_id")
+    @JoinColumn(name = "jmcd") // "license_id" -> "jmcd"
     private License license;
 }

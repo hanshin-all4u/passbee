@@ -14,12 +14,9 @@ import lombok.*;
 public class License extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer licenseId;
+    private String jmcd;
 
     // --- 자격 종목 목록 (qualifications) ---
-    @Column(unique = true)
-    private String jmcd;
     private String jmfldnm;
     private String seriescd;
     private String seriesnm;
