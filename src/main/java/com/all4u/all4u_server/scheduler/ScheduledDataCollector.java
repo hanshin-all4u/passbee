@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.Year;
 import java.util.List;
@@ -26,7 +27,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScheduledDataCollector {
 
-    // StatService, StatGradeService 의존성 제거
     private final QnetDataService qnetDataService;
     private final LicenseRepository licenseRepository;
     private final AgencyRepository agencyRepository;
@@ -41,7 +41,7 @@ public class ScheduledDataCollector {
             enrichLicenseDetails();
             collectAgencies();
             collectStatistics();
-            log.info("Scheduled data collection completed successfully.");
+            log.info("Scheduled data collection process finished."); // 로그 메시지 수정
         } catch (Exception e) {
             log.error("Scheduled data collection failed", e);
         }
@@ -49,12 +49,17 @@ public class ScheduledDataCollector {
 
     @Transactional
     public void collectQualifications() throws InterruptedException {
-        log.info("Collecting qualifications...");
+        log.info("===== 1. Collecting qualifications... =====");
         int pageNo = 1;
+        int totalSavedCount = 0;
         while (true) {
             List<QualificationItem> items = qnetDataService.getQualifications(pageNo, 100);
-            if (items == null || items.isEmpty()) break;
+            if (CollectionUtils.isEmpty(items)) {
+                log.warn("No qualification data found at page {}. Stopping collection.", pageNo);
+                break;
+            }
 
+            log.info("Page {} of qualifications found {} items.", pageNo, items.size());
             for (QualificationItem item : items) {
                 licenseRepository.findByJmcd(item.getJmcd()).orElseGet(() -> {
                     License license = License.builder()
@@ -67,43 +72,59 @@ public class ScheduledDataCollector {
                     return licenseRepository.save(license);
                 });
             }
-            log.info("Page {} of qualifications collected.", pageNo);
+            totalSavedCount += items.size();
             pageNo++;
             Thread.sleep(500);
         }
+        log.info("===== 1. Finished collecting qualifications. Total saved: {} =====", totalSavedCount);
     }
 
     @Transactional
     public void enrichLicenseDetails() throws InterruptedException {
-        log.info("Enriching license details...");
+        log.info("===== 2. Enriching license details... =====");
         List<License> licenses = licenseRepository.findAll();
+        if (CollectionUtils.isEmpty(licenses)) {
+            log.warn("No licenses found in DB to enrich. Skipping.");
+            return;
+        }
+
+        int enrichedCount = 0;
         for (License license : licenses) {
             if (license.getSummary() == null) {
                 List<QualitativeInfoItem> details = qnetDataService.getQualitativeInfo(license.getSeriescd());
-                details.stream()
-                        .filter(item -> item.getJmNm().equals(license.getJmfldnm()))
-                        .findFirst()
-                        .ifPresent(detail -> {
-                            license.setSummary(detail.getSummary());
-                            license.setJob(detail.getJob());
-                            license.setCareer(detail.getCareer());
-                            licenseRepository.save(license);
-                            log.info("Enriched: {}", license.getJmfldnm());
-                        });
+                if (!CollectionUtils.isEmpty(details)) {
+                    details.stream()
+                            .filter(item -> item.getJmNm().equals(license.getJmfldnm()))
+                            .findFirst()
+                            .ifPresent(detail -> {
+                                license.setSummary(detail.getSummary());
+                                license.setJob(detail.getJob());
+                                license.setCareer(detail.getCareer());
+                                licenseRepository.save(license);
+                                log.info("Enriched: {}", license.getJmfldnm());
+                            });
+                    enrichedCount++;
+                }
                 Thread.sleep(500);
             }
         }
+        log.info("===== 2. Finished enriching license details. Total enriched: {} =====", enrichedCount);
     }
 
     @Transactional
     public void collectAgencies() throws InterruptedException {
-        log.info("Collecting agencies...");
+        log.info("===== 3. Collecting agencies... =====");
         agencyRepository.deleteAllInBatch();
         int pageNo = 1;
+        int totalSavedCount = 0;
         while (true) {
             List<AgencyItem> items = qnetDataService.getAgencies(pageNo, 100);
-            if (items == null || items.isEmpty()) break;
+            if (CollectionUtils.isEmpty(items)) {
+                log.warn("No agency data found at page {}. Stopping collection.", pageNo);
+                break;
+            }
 
+            log.info("Page {} of agencies found {} items.", pageNo, items.size());
             for (AgencyItem item : items) {
                 Agency agency = Agency.builder()
                         .agencyName(item.getRcogInstiNm())
@@ -111,15 +132,16 @@ public class ScheduledDataCollector {
                         .build();
                 agencyRepository.save(agency);
             }
-            log.info("Page {} of agencies collected.", pageNo);
+            totalSavedCount += items.size();
             pageNo++;
             Thread.sleep(500);
         }
+        log.info("===== 3. Finished collecting agencies. Total saved: {} =====", totalSavedCount);
     }
 
     @Transactional
     public void collectStatistics() throws InterruptedException {
-        log.info("Collecting all statistics...");
+        log.info("===== 4. Collecting all statistics... =====");
         int lastYear = Year.now().getValue() - 1;
 
         for (int year = lastYear; year >= lastYear - 5; year--) {
@@ -131,7 +153,9 @@ public class ScheduledDataCollector {
             gradeStatRepository.deleteByBaseYear(currentYear);
             regionalReceptionRepository.deleteByBaseYear(currentYear);
 
-            qnetDataService.getTotalExamStats(yearStr).forEach(item -> saveTotalExamStat(currentYear, item));
+            List<TotalExamStatItem> totalExamStats = qnetDataService.getTotalExamStats(yearStr);
+            log.info("Found {} items for TotalExamStats.", totalExamStats.size());
+            totalExamStats.forEach(item -> saveTotalExamStat(currentYear, item));
             Thread.sleep(500);
 
             saveGradeStats(currentYear, "WRITTEN_APPLICANTS", qnetDataService.getGradeWrittenExamStats(yearStr));
@@ -148,10 +172,13 @@ public class ScheduledDataCollector {
             Map<String, String> gradeCodes = Map.of("기술사", "10", "기능장", "20", "기사", "30", "산업기사", "31", "기능사", "40");
             for (Map.Entry<String, String> entry : gradeCodes.entrySet()) {
                 final String gradeName = entry.getKey();
-                qnetDataService.getRegionalReceptionStats(yearStr, entry.getValue()).forEach(item -> saveRegionalReception(currentYear, gradeName, item));
+                List<RegionalReceptionItem> regionalStats = qnetDataService.getRegionalReceptionStats(yearStr, entry.getValue());
+                log.info("Found {} items for RegionalReceptionStats (Grade: {}).", regionalStats.size(), gradeName);
+                regionalStats.forEach(item -> saveRegionalReception(currentYear, gradeName, item));
                 Thread.sleep(500);
             }
         }
+        log.info("===== 4. Finished collecting all statistics. =====");
     }
 
     private void saveTotalExamStat(int year, TotalExamStatItem item) {
@@ -185,7 +212,8 @@ public class ScheduledDataCollector {
     }
 
     private void saveGradeStats(int year, String type, List<GradePassStatItem> items) {
-        if (items == null) return;
+        log.info("Found {} items for GradeStats (Type: {}).", items.size(), type);
+        if (CollectionUtils.isEmpty(items)) return;
         items.forEach(item -> {
             GradeStat stat = new GradeStat(null, year, item.getGradename(), type,
                     item.getStatisyy1(), item.getStatisyy2(), item.getStatisyy3(),
@@ -208,4 +236,3 @@ public class ScheduledDataCollector {
         regionalReceptionRepository.save(reception);
     }
 }
-

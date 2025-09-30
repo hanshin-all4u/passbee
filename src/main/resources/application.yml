@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create # 애플리케이션을 실행할 때마다 DB 새로 생성. 실제 운영 서버에서는 update로 수정
+      ddl-auto: update # 애플리케이션을 실행할 때마다 DB 새로 생성. 실제 운영 서버에서는 update로 수정
     show-sql: true
     properties:
       hibernate:

@@ -1,10 +1,10 @@
 package com.all4u.all4u_server.qnet.service;
 
+import com.all4u.all4u_server.config.QnetProperties;
 import com.all4u.all4u_server.qnet.client.QnetClient;
 import com.all4u.all4u_server.qnet.dto.*;
 import com.all4u.all4u_server.qnet.dto.common.QnetXmlBase;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -16,12 +16,12 @@ import java.util.Map;
 public class QnetDataService {
 
     private final QnetClient qnetClient;
-
-    @Value("#{${external.qnet.endpoints}}")
-    private Map<String, String> endpoints;
+    private final QnetProperties qnetProperties; // @Value 대신 QnetProperties를 주입받습니다.
 
     private <T> List<T> fetchData(String endpointKey, Map<String, String> params, Class<T> itemClass) {
-        QnetXmlBase<T> response = qnetClient.get(endpoints.get(endpointKey), params, itemClass);
+        // 프로퍼티 클래스에서 엔드포인트 맵을 가져와 사용합니다.
+        String endpoint = qnetProperties.getEndpoints().get(endpointKey);
+        QnetXmlBase<T> response = qnetClient.get(endpoint, params, itemClass);
         if (response == null || response.getBody() == null || response.getBody().getItems() == null || response.getBody().getItems().getItem() == null) {
             return Collections.emptyList();
         }
@@ -80,8 +80,8 @@ public class QnetDataService {
         return fetchData("qualitative-info", Map.of("seriesCd", seriesCd), QualitativeInfoItem.class);
     }
 
-    public List<ExamSubjectItem> getExamSubjects(String jmCd) {
-        return fetchData("exam-subjects", Map.of("jmCd", jmCd), ExamSubjectItem.class);
+    public List<com.all4u.all4u_server.qnet.dto.exam.ExamSubjectItem> getExamSubjects(String jmCd) {
+        return fetchData("exam-subjects", Map.of("jmCd", jmCd), com.all4u.all4u_server.qnet.dto.exam.ExamSubjectItem.class);
     }
 
     public List<PracticalExamItem> getPracticalItems(String jmCd, String implYY, String implSeq) {
@@ -100,4 +100,3 @@ public class QnetDataService {
         return fetchData("score-distribution", Map.of("baseYY", baseYY, "grdCd", grdCd), ScoreDistributionItem.class);
     }
 }
-

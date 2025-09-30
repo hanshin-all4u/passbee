@@ -1,10 +1,10 @@
 package com.all4u.all4u_server.qnet.client;
 
+import com.all4u.all4u_server.config.QnetProperties;
 import com.all4u.all4u_server.qnet.dto.common.QnetXmlBase;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -21,12 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QnetClient {
     private final XmlMapper xmlMapper;
-
-    @Value("${external.qnet.service-key}")
-    private String serviceKey;
-
-    @Value("${external.qnet.base-url}")
-    private String baseUrl;
+    private final QnetProperties qnetProperties; // @Value 대신 QnetProperties를 주입받습니다.
 
     public <T> QnetXmlBase<T> get(String endpoint, Map<String, String> params, Class<T> itemClass) {
         String responseBody = "";
@@ -37,7 +32,10 @@ public class QnetClient {
                     .collect(Collectors.joining("&"));
 
             String urlString = String.format("%s/%s?ServiceKey=%s&%s",
-                    baseUrl, endpoint, encode(serviceKey), queryParams);
+                    qnetProperties.getBaseUrl(), // 프로퍼티 클래스에서 값을 가져옵니다.
+                    endpoint,
+                    encode(qnetProperties.getServiceKey()), // 프로퍼티 클래스에서 값을 가져옵니다.
+                    queryParams);
 
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
