@@ -63,3 +63,7 @@ external:
       regional-reception: "InquiryExameeAbdSVC/getList"
       # 7. 연도별 회별 국가기술자격시험 원서 점수 분포
       score-distribution: "InquiryRecptScoreDistSVC/getList"
+
+springdoc:
+  swagger-ui:
+    url: /v3/api-docs
