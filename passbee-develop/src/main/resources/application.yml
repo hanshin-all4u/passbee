@@ -1,6 +1,0 @@
-spring:
-  profiles:
-    active: dev # 앞으로는 'dev' 프로필을 기본으로 활성화
-
-server:
-  port: 8080
