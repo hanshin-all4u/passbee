@@ -19,12 +19,13 @@ public class LicenseService {
     private final QualificationRepository qualificationRepository;
     private final QnetDataService qnetDataService;
 
+    // --- 기존에 있던 데이터 수집 관련 메소드들 (그대로 유지) ---
+
     // 이 메소드는 qualification 테이블의 원본 데이터를 license 테이블로 옮기는 역할을 합니다.
     @Transactional
     public void synchronizeLicenses() {
         List<Qualification> qualifications = qualificationRepository.findAll();
         for (Qualification q : qualifications) {
-            // findByJmcd를 findById로 변경합니다.
             licenseRepository.findById(q.getJmcd()).orElseGet(() -> {
                 License license = new License();
                 license.setJmcd(q.getJmcd());
@@ -56,5 +57,14 @@ public class LicenseService {
                     license.setCareer(detail.getCareer());
                     licenseRepository.save(license);
                 });
+    }
+
+    /**
+     * API 요청을 위해 모든 자격증 목록을 조회하는 메소드
+     * @return DB에 저장된 모든 License 엔티티 목록
+     */
+    @Transactional(readOnly = true) // 데이터 변경이 없는 조회 전용 트랜잭션
+    public List<License> findAllLicenses() {
+        return licenseRepository.findAll();
     }
 }
