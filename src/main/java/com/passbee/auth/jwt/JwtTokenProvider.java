@@ -27,14 +27,13 @@ public class JwtTokenProvider {
 
     // 사용자 정보를 받아 JWT를 생성하는 메소드
     public String createToken(Users user) {
-        Claims claims = Jwts.claims().subject(user.getEmail()).build();
-        claims.put("name", user.getName()); // 페이로드에 이름 추가
-
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
+        // JJWT 0.12.x에서는 Claims가 불변이므로, builder에서 직접 claim을 추가합니다.
         return Jwts.builder()
-                .claims(claims)
+                .subject(user.getEmail())
+                .claim("name", user.getName())
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key)

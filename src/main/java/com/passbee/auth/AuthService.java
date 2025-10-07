@@ -34,7 +34,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public String login(LoginRequest req) {
         System.out.println("로그인 시도 - 이메일: " + req.email());
-        
+
         Users user = usersRepository.findByEmail(req.email())
                 .orElseThrow(() -> {
                     System.out.println("사용자를 찾을 수 없음: " + req.email());
@@ -42,8 +42,6 @@ public class AuthService {
                 });
 
         System.out.println("사용자 찾음: " + user.getName() + " (" + user.getEmail() + ")");
-        System.out.println("입력된 비밀번호: " + req.password());
-        System.out.println("저장된 비밀번호 해시: " + user.getPassword());
 
         if (!passwordEncoder.matches(req.password(), user.getPassword())) {
             System.out.println("비밀번호 불일치");
