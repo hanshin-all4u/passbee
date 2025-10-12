@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:passbee;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+
+# ✅ 테스트에서도 충분히 긴 JWT 키 제공 (BASE64URL 형식)
+jwt:
+  secret: "N1kC3Q9c8Qm1v3oXq0yTq8m9u1YF9Tq2oF0d6mHf2XbqF1k7qzXo6Z9cQ1t5Y3mJmRrH0yV6sBp2kQ7r8vCw=="
+  expiration-ms: 3600000
+
+# ✅ 테스트용 Dummy 값으로 비워진 @Value를 모두 채워줌
+external:
+  qnet:
+    base-url: "http://localhost"        # 더미
+    service-key: "dummy-key"             # 더미 (실 호출 안 함)
+    endpoints:
+      total-exam: "dummy"
+      grad-pi-exam: "dummy"
+      grad-pi-pass: "dummy"
+      grad-si-exam: "dummy"
+      grad-si-pass: "dummy"
+      event-year-pi: "dummy"
+      event-year-si: "dummy"
+      event-cert-year: "dummy"
+      cert-year-grade: "dummy"
+      cert-year-age: "dummy"
+      qualifications: "dummy"
+      qualitative-info: "dummy"
+      exam-subjects: "dummy"
+      practical-items: "dummy"
+      agencies: "dummy"
+      regional-reception: "dummy"
+      score-distribution: "dummy"
+
+logging:
+  level:
+    org.springframework: warn
+    org.hibernate.SQL: warn
