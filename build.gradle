@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.3.0' // 1. 안정적인 최신 버전으로 수정
-    id 'io.spring.dependency-management' version '1.1.5' // 2. 호환되는 버전으로 수정
+    id 'org.springframework.boot' version '3.3.0'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.all4u' // 3. Group 이름 수정 (com.example -> com.all4u)
+group = 'com.all4u'
 version = '0.0.1-SNAPSHOT'
 description = 'all4u project'
 
@@ -28,9 +28,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
-
-    // 4. Spring Boot 3.3.0과 호환되는 최신 버전으로 수정
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -40,13 +44,10 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'\
 
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-
+    // ▼▼▼ [추가] 아래 2개 의존성을 추가합니다. ▼▼▼
+    testImplementation 'com.h2database:h2'
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {

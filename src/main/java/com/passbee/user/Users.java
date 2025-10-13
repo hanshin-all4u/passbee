@@ -11,18 +11,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import com.passbee.favorite.domain.Favorite;
+
 
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity
 @Table(name = "users")
-public class Users extends BaseTimeEntity implements UserDetails { // UserDetails 구현 추가
+public class Users extends BaseTimeEntity implements UserDetails {
 
-    // --- 기존 필드들은 그대로 유지됩니다 ---
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @Column(name = "user_id")
+    private Long id; // 필드명: userId -> id
 
-    @Column(nullable = false, length = 120) // BCrypt로 암호화된 비밀번호는 길어지므로 넉넉하게 설정
+    @Column(nullable = false, length = 120)
     private String password;
 
     @Column(nullable = false, length = 50)
@@ -37,6 +41,10 @@ public class Users extends BaseTimeEntity implements UserDetails { // UserDetail
     @Column(length = 255)
     private String address;
 
+    // ▼▼▼ [추가] 닉네임 필드 ▼▼▼
+    @Column(nullable = false, unique = true)
+    private String nickname;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -46,39 +54,30 @@ public class Users extends BaseTimeEntity implements UserDetails { // UserDetail
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
-
-    // --- ↓↓↓ Spring Security가 필요로 하는 UserDetails 관련 메소드들 추가 ↓↓↓ ---
+    // ▼▼▼ [추가] 즐겨찾기 목록 필드 ▼▼▼
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Favorite> favorites = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 이 사용자가 가진 권한(Role) 목록을 반환합니다.
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
     public String getUsername() {
-        // Spring Security가 '사용자 이름'으로 인식할 필드를 지정합니다.
-        // 우리는 이메일을 ID로 사용하므로 email을 반환합니다.
         return email;
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true; // 계정이 만료되지 않았는지 (true: 만료 안됨)
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true; // 계정이 잠기지 않았는지 (true: 잠기지 않음)
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // 비밀번호가 만료되지 않았는지 (true: 만료 안됨)
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return true; // 계정이 활성화 상태인지 (true: 활성화됨)
-    }
+    public boolean isEnabled() { return true; }
 }

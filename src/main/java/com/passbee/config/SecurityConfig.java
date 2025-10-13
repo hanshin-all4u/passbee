@@ -1,5 +1,6 @@
 package com.passbee.config;
 
+import com.passbee.auth.jwt.JwtAuthenticationFilter;
 import com.passbee.user.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,26 +15,25 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor // final 필드를 위한 생성자 자동 생성
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService; // '사용자 정보 안내자'를 주입받습니다.
+    private final UserDetailsServiceImpl userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ↓↓↓ '업무 지시서(AuthenticationProvider)'를 Bean으로 등록합니다. ↓↓↓
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        // 1. '사용자 정보 안내자'를 이 업무 지시서에 등록합니다.
         authProvider.setUserDetailsService(userDetailsService);
-        // 2. '비밀번호 암호화 방식'을 이 업무 지시서에 등록합니다.
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -51,22 +51,28 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // ▼▼▼ [수정] Swagger 관련 경로를 더 명확하게 추가합니다. ▼▼▼
                         .requestMatchers(
-                                "/auth/**",
+                                "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/licenses",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/api/licenses/**",
                                 "/api/qnet/**",
                                 "/api/agencies/**",
                                 "/api/stats/**",
                                 "/api/qualifications/**",
                                 "/api/exam-subjects/**",
-                                "/api/admin/**"  // 관리자 API 허용 (개발용)
+                                "/api/admin/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // 방금 만든 '업무 지시서'를 인증 과정에 포함시킵니다.
-                .authenticationProvider(authenticationProvider());
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
