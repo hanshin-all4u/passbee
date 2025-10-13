@@ -1,38 +1,61 @@
 package com.passbee.exam;
 
-import com.passbee.common.BaseTimeEntity;
 import com.passbee.license.License;
-import com.passbee.review.Review;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
-import lombok.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "exams")
-public class Exam extends BaseTimeEntity {
+public class Exam {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long examId;
+    private Long id;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "jmcd", referencedColumnName = "jmcd") // name을 jmcd로 변경
+    private String description; // 시험 설명 (예: "2024년 정기 기사 1회")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "license_jmcd")
     private License license;
 
-    private String implYy;
-    private String examPckd;
-    private LocalDateTime docRegStartDt;
-    private LocalDateTime docRegEndDt;
-    private LocalDateTime docExamStartDt;
-    private LocalDateTime docPassDt;
-    private Integer fee;
-    private String acceptCdNm;
-    private String etc;
+    public void setImplYy(String implYy) {
+    }
 
-    @OneToMany(mappedBy = "exam")
-    private List<Review> reviews = new ArrayList<>();
+    public void setExamPckd(String examPckd) {
+    }
+
+    public void setDocRegStartDt(LocalDateTime localDateTime) {
+    }
+
+    public void setDocRegEndDt(LocalDateTime localDateTime) {
+    }
+
+    public void setDocExamStartDt(LocalDateTime localDateTime) {
+    }
+
+    public void setDocPassDt(LocalDateTime localDateTime) {
+    }
+
+    public void setFee(Integer integer) {
+    }
+
+    public void setAcceptCdNm(String acceptCdNm) {
+    }
+
+    public void setEtc(String etc) {
+    }
+
+    // '시험별 리뷰' 기능은 나중에 구현하기 위해 주석 처리된 상태입니다.
+    // @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL)
+    // private List<Review> reviews = new ArrayList<>();
 }

@@ -67,4 +67,18 @@ public class LicenseService {
     public List<License> findAllLicenses() {
         return licenseRepository.findAll();
     }
+
+    /**
+     * ID(jmcd)를 이용해 특정 자격증 하나의 상세 정보를 조회하는 메소드
+     * @param jmcd 조회할 자격증의 고유 종목코드
+     * @return 찾아낸 License 엔티티
+     * @throws IllegalArgumentException 해당 ID의 자격증이 없을 경우 예외 발생
+     */
+    @Transactional(readOnly = true)
+    public License findLicenseById(String jmcd) {
+        // LicenseRepository를 사용해 DB에서 jmcd로 자격증을 찾습니다.
+        // 만약 없으면, "해당 자격증을 찾을 수 없습니다" 라는 에러 메시지를 보냅니다.
+        return licenseRepository.findById(jmcd)
+                .orElseThrow(() -> new IllegalArgumentException("해당 자격증을 찾을 수 없습니다. id=" + jmcd));
+    }
 }

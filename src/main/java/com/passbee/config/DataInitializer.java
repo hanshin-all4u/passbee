@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         try {
             // 테스트 사용자가 이미 존재하는지 확인
             if (!usersRepository.existsByEmail("test@example.com")) {
-                SignupRequest testUser = new SignupRequest("테스트사용자", "test@example.com", "pass1234");
+                SignupRequest testUser = new SignupRequest("테스트닉네임", "테스트사용자", "test@example.com", "pass1234");
                 authService.signup(testUser);
                 System.out.println("테스트 사용자 생성 완료: test@example.com / pass1234");
             } else {

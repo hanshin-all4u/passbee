@@ -1,6 +1,33 @@
 spring:
+  # 이름이 중복된 부품(Bean)을 덮어쓰도록 허용합니다. (이전 문제 해결)
+  main:
+    allow-bean-definition-overriding: true
   profiles:
-    active: dev # 앞으로는 'dev' 프로필을 기본으로 활성화
+    active: dev
 
-server:
-  port: 8080
+  # --- 데이터베이스 연결 설정 ---
+  datasource:
+    url: jdbc:mysql://localhost:3306/passbee?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: all4u_app
+    password: Passbee!2025
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # --- JPA 및 하이버네이트 설정 ---
+  jpa:
+    hibernate:
+      ddl-auto: update # 애플리케이션 실행 시 DB 스키마를 자동으로 업데이트
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect # 최신 버전 권장 Dialect
+
+# --- API 문서 (Swagger) 설정 ---
+springdoc:
+  swagger-ui:
+    url: /v3/api-docs
+
+# --- JWT (JSON Web Token) 설정 등 기타 설정은 그대로 유지 ---
+jwt:
+  secret: "95d978e35ebdb5351a0a9da337ffb62100e469473cedd7be6648063c1eda3115"
+  expiration-ms: 3600000

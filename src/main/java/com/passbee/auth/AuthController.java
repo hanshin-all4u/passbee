@@ -45,14 +45,14 @@ public class AuthController {
     public ResponseEntity<?> login(@org.springframework.web.bind.annotation.RequestBody @Valid LoginRequest req) {
         try {
             // 1. AuthService로부터 실제 JWT(String)를 받아옵니다.
-            String token = authService.login(req);
+            String token = String.valueOf(authService.login(req));
 
             // 2. 응답에 필요한 사용자 정보를 DB에서 다시 찾아옵니다.
             Users user = usersRepository.findByEmail(req.email())
                     .orElseThrow(() -> new IllegalStateException("인증 성공 후 사용자를 찾을 수 없습니다."));
 
             // 3. 성공 응답에 실제 토큰과 사용자 정보를 담아 반환합니다.
-            TokenResponse tokenResponse = new TokenResponse(token, user.getName(), user.getEmail());
+            TokenResponse tokenResponse = new TokenResponse(token, user.getNickname(), user.getEmail());
             return ResponseEntity.ok(tokenResponse);
 
         } catch (BadCredentialsException e) {
