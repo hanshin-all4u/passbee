@@ -36,4 +36,7 @@ public class License extends BaseTimeEntity {
 
     @Column(columnDefinition = "TEXT")
     private String career; // 진로 및 전망
+
+    @Column(columnDefinition = "TEXT")
+    private String trend; // 출제경향
 }

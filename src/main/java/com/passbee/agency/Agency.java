@@ -18,7 +18,11 @@ public class Agency extends BaseTimeEntity {
     private String rcogInstiCd; // PK로 변경
 
     @Column(columnDefinition = "TEXT")
-    private String agencyName; // 기관명
+    private String rcogInstiNm; // 기관명 (API 명세 맞춤)
 
-    private String recognitionRate; // 인정비율
+    private String crerRcogRate; // 경력인정 비율 (API 명세 맞춤)
+
+    // API 명세 추가 필드: 유효기간 시작/종료일 (yyyyMMdd)
+    private String validTermStartDt;
+    private String validTermEndDt;
 }

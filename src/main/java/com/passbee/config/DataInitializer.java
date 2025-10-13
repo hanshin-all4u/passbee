@@ -9,9 +9,9 @@ import com.passbee.scheduler.ScheduledDataCollector;
 import com.passbee.user.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+//import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
@@ -34,12 +34,11 @@ public class DataInitializer implements CommandLineRunner {
             if (!usersRepository.existsByEmail("test@example.com")) {
                 SignupRequest testUser = new SignupRequest("테스트사용자", "test@example.com", "pass1234");
                 authService.signup(testUser);
-                System.out.println("테스트 사용자 생성 완료: test@example.com / pass1234");
-            } else {
-                System.out.println("테스트 사용자가 이미 존재합니다: test@example.com");
+                // 테스트 사용자 생성 완료: test@example.com / pass1234
             }
+            // 테스트 사용자가 이미 존재합니다: test@example.com
         } catch (Exception e) {
-            System.out.println("테스트 사용자 생성 중 오류: " + e.getMessage());
+            // 테스트 사용자 생성 중 오류: " + e.getMessage()
         }
     }
 }

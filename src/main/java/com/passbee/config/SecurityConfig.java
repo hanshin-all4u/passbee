@@ -55,7 +55,13 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/licenses"
+                                "/api/licenses",
+                                "/api/qnet/**",
+                                "/api/agencies/**",
+                                "/api/stats/**",
+                                "/api/qualifications/**",
+                                "/api/exam-subjects/**",
+                                "/api/admin/**"  // 관리자 API 허용 (개발용)
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

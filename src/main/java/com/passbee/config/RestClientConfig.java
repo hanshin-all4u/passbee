@@ -2,6 +2,8 @@ package com.passbee.config; // 또는 com.all4u.all4u_server.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper; // import 추가
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +19,9 @@ public class RestClientConfig {
         ObjectMapper mapper = new ObjectMapper();
         // API 응답에 알 수 없는 필드가 있어도 파싱에 실패하지 않도록 설정합니다.
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // Java 시간 타입(LocalDateTime 등) 직렬화 지원 및 타임스탬프 비활성화
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }
 

@@ -1,7 +1,7 @@
 package com.passbee.review;
 
 import com.passbee.common.BaseTimeEntity;
-import com.passbee.exam.Exam;
+import com.passbee.license.License;
 import com.passbee.user.Users;
 import com.passbee.attachment.AttachmentFile;
 import jakarta.persistence.*;
@@ -24,8 +24,8 @@ public class Review extends BaseTimeEntity {
     private Users user;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "exam_id")
-    private Exam exam;
+    @JoinColumn(name = "jmcd", referencedColumnName = "jmcd")
+    private License license;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -35,5 +35,6 @@ public class Review extends BaseTimeEntity {
     private String comment;
 
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<AttachmentFile> files = new ArrayList<>();
 }

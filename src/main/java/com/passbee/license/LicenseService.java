@@ -55,6 +55,7 @@ public class LicenseService {
                     license.setSummary(detail.getSummary());
                     license.setJob(detail.getJob());
                     license.setCareer(detail.getCareer());
+                    license.setTrend(detail.getTrend());
                     licenseRepository.save(license);
                 });
     }

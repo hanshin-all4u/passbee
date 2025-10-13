@@ -5,7 +5,7 @@ import com.passbee.qnet.client.QnetClient;
 import com.passbee.qnet.dto.*;
 import com.passbee.qnet.dto.*;
 import com.passbee.qnet.dto.common.QnetXmlBase;
-import com.passbee.qnet.dto.exam.ExamSubjectItem;
+import com.passbee.qnet.dto.ExamSubjectItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

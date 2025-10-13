@@ -2,9 +2,9 @@
 spring:
   # --- 데이터베이스 연결 설정 ---
   datasource:
-    url: jdbc:mysql://localhost:3307/passbee?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://127.0.0.1:3307/passbee?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
-    password: root1234!!
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # --- JPA 및 하이버네이트 설정 ---
@@ -28,7 +28,7 @@ spring:
 external:
   qnet:
     base-url: "http://openapi.q-net.or.kr/api/service/rest"
-    service-key: "9tIoGU5QNqm7uVeqgQXftWdCxmc1iGAqn86rHbQh5BZmGUgdlpc8sq5SwgeQIwgPyM5Rn0o//C7pnYa0cE/ycA=="
+    service-key: ${QNET_SERVICE_KEY}
     endpoints:
       ##### 국가기술자격 통계 정보 (InquiryStatSVC) #####
       # 연도별 응시자/합격자 수
@@ -80,5 +80,5 @@ logging:
 
 # --- JWT (JSON Web Token) 설정 ---
 jwt:
-  secret: "95d978e35ebdb5351a0a9da337ffb62100e469473cedd7be6648063c1eda3115" # 64바이트 이상의 Base64 인코딩된 문자열 (절대 외부에 노출 금지!)
+  secret: ${JWT_SECRET} # 64바이트 이상의 Base64 인코딩된 문자열 (절대 외부에 노출 금지!)
   expiration-ms: 3600000 # 토큰 유효 기간 (1시간 = 3600 * 1000 ms)

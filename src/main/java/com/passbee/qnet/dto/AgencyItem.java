@@ -14,4 +14,11 @@ public class AgencyItem {
 
     @JacksonXmlProperty(localName = "crerRcogRate")
     private String crerRcogRate; // 경력인정 비율
+
+    // 가이드 명세 추가 필드
+    @JacksonXmlProperty(localName = "validTermStartDt")
+    private String validTermStartDt; // 유효기간 시작일자 (yyyyMMdd)
+
+    @JacksonXmlProperty(localName = "validTermEndDt")
+    private String validTermEndDt; // 유효기간 종료일자 (yyyyMMdd)
 }

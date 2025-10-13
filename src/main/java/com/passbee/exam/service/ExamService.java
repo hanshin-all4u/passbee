@@ -1,12 +1,12 @@
 package com.passbee.exam.service;
 
-import com.passbee.exam.Exam;
-import com.passbee.exam.ExamRepository;
+import com.passbee.exam.ExamSubject;
+import com.passbee.exam.ExamSubjectRepository;
 import com.passbee.license.License;
 import com.passbee.license.LicenseRepository;
 import com.passbee.qnet.client.QnetClient;
 import com.passbee.qnet.dto.common.QnetXmlBase;
-import com.passbee.qnet.dto.exam.ExamSubjectItem;
+import com.passbee.qnet.dto.ExamSubjectItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,42 +22,40 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExamService {
     private final QnetClient qnetClient;
-    private final ExamRepository examRepository;
+    private final ExamSubjectRepository examSubjectRepository;
     private final LicenseRepository licenseRepository;
 
     @Value("${external.qnet.endpoints.exam-subjects}")
     private String examSubjectsEndpoint;
 
     @Transactional
-    public void importExamInfo(String jmcd, int baseYear) {
-        // QnetClient의 새로운 get 메소드 형식에 맞게 파라미터를 Map으로 전달합니다.
-        Map<String, String> params = Map.of("jmCd", jmcd, "baseYY", String.valueOf(baseYear));
-        QnetXmlBase<ExamSubjectItem> resp = qnetClient.get(examSubjectsEndpoint, params, ExamSubjectItem.class);
-
-        if (resp == null || resp.getBody() == null || resp.getBody().getItems() == null || resp.getBody().getItems().getItem() == null) {
-            log.warn("No exam data found for jmcd: {} and year: {}", jmcd, baseYear);
+    public void importExamSubjects(String jmcd) {
+        Optional<License> licenseOpt = licenseRepository.findById(jmcd);
+        if (licenseOpt.isEmpty()) {
+            log.warn("License not found for jmcd {}", jmcd);
             return;
         }
+        License license = licenseOpt.get();
 
+        // 과목 정보는 루트 패키지의 ExamSubjectItem(jmNm, kmNm, kmYn)을 사용합니다.
+        QnetXmlBase<ExamSubjectItem> resp = qnetClient.get(
+                examSubjectsEndpoint,
+                Map.of("jmCd", jmcd),
+                ExamSubjectItem.class
+        );
+        if (resp == null || resp.getBody() == null || resp.getBody().getItems() == null || resp.getBody().getItems().getItem() == null) {
+            log.warn("No exam subjects found for jmcd: {}", jmcd);
+            return;
+        }
         List<ExamSubjectItem> items = resp.getBody().getItems().getItem();
-        for (ExamSubjectItem item : items) {
-            // 이 부분을 findByJmcd에서 findById로 변경합니다.
-            Optional<License> licenseOpt = licenseRepository.findById(jmcd);
-            if (licenseOpt.isPresent()) {
-                Exam exam = new Exam();
-                exam.setLicense(licenseOpt.get());
-                exam.setImplYy(item.getImplYy());
-                exam.setExamPckd(item.getExamPckd());
-                exam.setDocRegStartDt(item.getDocRegStartDt() != null ? item.getDocRegStartDt().toLocalDate().atStartOfDay() : null);
-                exam.setDocRegEndDt(item.getDocRegEndDt() != null ? item.getDocRegEndDt().toLocalDate().atStartOfDay() : null);
-                exam.setDocExamStartDt(item.getDocExamStartDt() != null ? item.getDocExamStartDt().toLocalDate().atStartOfDay() : null);
-                exam.setDocPassDt(item.getDocPassDt() != null ? item.getDocPassDt().toLocalDate().atStartOfDay() : null);
-                exam.setFee(item.getFee() != null ? Integer.parseInt(item.getFee()) : null);
-                exam.setAcceptCdNm(item.getAcceptCdNm());
-                exam.setEtc(item.getEtc());
-
-                examRepository.save(exam);
-            }
+        for (ExamSubjectItem s : items) {
+            ExamSubject es = ExamSubject.builder()
+                    .license(license)
+                    .jmNm(s.getJmNm())
+                    .kmNm(s.getKmNm())
+                    .kmYn(s.getKmYn())
+                    .build();
+            examSubjectRepository.save(es);
         }
     }
 }

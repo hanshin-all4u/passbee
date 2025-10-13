@@ -6,4 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface RegionalReceptionRepository extends JpaRepository<RegionalReception, Long> {
     @Transactional
     void deleteByBaseYear(Integer year);
+
+    boolean existsByBaseYearAndGradeNameAndResidenceAndReceptionBranchAndRound(
+            Integer baseYear, String gradeName, String residence, String receptionBranch, Integer round);
 }

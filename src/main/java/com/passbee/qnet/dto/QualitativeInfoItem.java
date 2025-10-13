@@ -16,4 +16,7 @@ public class QualitativeInfoItem {
 
     @JacksonXmlProperty(localName = "career")
     private String career; // 진로 및 전망
+
+    @JacksonXmlProperty(localName = "trend")
+    private String trend; // 출제경향
 }

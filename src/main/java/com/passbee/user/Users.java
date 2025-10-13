@@ -39,9 +39,11 @@ public class Users extends BaseTimeEntity implements UserDetails { // UserDetail
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private Role role = Role.USER;
 
     @OneToMany(mappedBy = "user")
+    @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
 
