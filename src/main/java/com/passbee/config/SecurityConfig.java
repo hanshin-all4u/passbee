@@ -5,6 +5,7 @@ import com.passbee.user.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // ▼▼▼ [추가] HttpMethod import
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -59,9 +60,13 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // ▼▼▼ [수정] /api/licenses/** 는 GET 요청만 허용합니다. ▼▼▼
+                        .requestMatchers(HttpMethod.GET, "/api/licenses/**").permitAll()
+
                         .requestMatchers(
                                 "/auth/**",
-                                "/api/licenses/**",
+                                // "/api/licenses/**", // <- 여기서 삭제
                                 "/api/qnet/**",
                                 "/api/agencies/**",
                                 "/api/stats/**",
