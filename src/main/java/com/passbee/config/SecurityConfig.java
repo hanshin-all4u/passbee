@@ -5,7 +5,7 @@ import com.passbee.user.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // ▼▼▼ [추가] HttpMethod import
+import org.springframework.http.HttpMethod; // HttpMethod import
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -52,7 +52,6 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // ▼▼▼ [수정] Swagger 관련 경로를 더 명확하게 추가합니다. ▼▼▼
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -61,12 +60,13 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
-                        // ▼▼▼ [수정] /api/licenses/** 는 GET 요청만 허용합니다. ▼▼▼
                         .requestMatchers(HttpMethod.GET, "/api/licenses/**").permitAll()
+
+                        // ▼▼▼ [추가] Q&A(qna) 목록/상세보기(GET)도 모두 허용합니다. ▼▼▼
+                        .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()
 
                         .requestMatchers(
                                 "/auth/**",
-                                // "/api/licenses/**", // <- 여기서 삭제
                                 "/api/qnet/**",
                                 "/api/agencies/**",
                                 "/api/stats/**",
