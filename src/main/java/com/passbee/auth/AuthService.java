@@ -22,11 +22,27 @@ public class AuthService {
 
     @Transactional
     public Users signup(SignupRequest req) {
+        // ▼▼▼ [수정] 이메일 중복 검사 ▼▼▼
         if (usersRepository.existsByEmail(req.email())) {
             throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
         }
+
+        // ▼▼▼ [추가] 닉네임 중복 검사 ▼▼▼
+        if (usersRepository.existsByNickname(req.nickname())) {
+            throw new IllegalArgumentException("이미 사용중인 닉네임입니다.");
+        }
+
         String encodedPassword = passwordEncoder.encode(req.password());
-        Users newUser = Users.builder().name(req.name()).email(req.email()).password(encodedPassword).role(Role.USER).build();
+
+        // ▼▼▼ [수정] nickname도 함께 저장 ▼▼▼
+        Users newUser = Users.builder()
+                .name(req.name())
+                .nickname(req.nickname()) // 닉네임 저장
+                .email(req.email())
+                .password(encodedPassword)
+                .role(Role.USER)
+                .build();
+
         return usersRepository.save(newUser);
     }
 

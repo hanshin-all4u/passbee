@@ -1,0 +1,95 @@
+[33mcommit 685333996b05d6e29fbfa999128c68e85ada333a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelop[m[33m, [m[1;31morigin/develop[m[33m)[m
+Author: unknown <crow000n@gmail.com>
+Date:   Tue Oct 14 02:28:36 2025 +0900
+
+    feat: db 브랜치와 favorites 브랜치 기능 병합
+
+[33mcommit 13794ef67dbe5f2d9697cb243d67a574ae741cf0[m[33m ([m[1;31morigin/feature-db[m[33m, [m[1;32mfeature-db[m[33m)[m
+Author: unknown <crow000n@gmail.com>
+Date:   Tue Oct 14 00:51:36 2025 +0900
+
+    13 - 모든 테이블에 데이터 수집 완료, 보안 주의 요하는 항목 환경변수로 변경
+
+[33mcommit 78921ac7ec944ddb970a5286585c00e0ff896084[m
+Author: unknown <crow000n@gmail.com>
+Date:   Tue Oct 7 15:34:12 2025 +0900
+
+    fix(auth): JWT 생성 오류 수정, CORS 개선, 테스트 계정 생성
+
+[33mcommit 7c780820d823834250e6466a7b6f951c9703c12d[m
+Author: unknown <crow000n@gmail.com>
+Date:   Tue Oct 7 15:05:34 2025 +0900
+
+    DB, login merge
+
+[33mcommit 11ffbe9b3c49a2f5947e291d2e958a3b4dbb4421[m
+Author: unknown <crow000n@gmail.com>
+Date:   Fri Oct 3 18:03:26 2025 +0900
+
+    feat: Integrate login API and configs
+
+[33mcommit 4b9eeef1d51fc5baec3cd230cfd7035a8fe8435f[m
+Author: unknown <crow000n@gmail.com>
+Date:   Thu Oct 2 04:15:59 2025 +0900
+
+    9 - swagger solved
+
+[33mcommit 7c3dfeca7543ff084873a8ce99bc6171ef58f032[m
+Author: unknown <crow000n@gmail.com>
+Date:   Thu Oct 2 03:44:45 2025 +0900
+
+    8 - gimini push
+
+[33mcommit 0ba1f56df67f45660e74107ebdff5b542fbb85a6[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 30 17:36:07 2025 +0900
+
+    7 - add SpringDocConfig
+
+[33mcommit fbc5bb5e7b028732c1e65ed8cde67ba65a047806[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 30 16:24:25 2025 +0900
+
+    6 - Change PK of License and Agency entities
+
+[33mcommit d58e2c71660ad88008c2709fb2d33abf4282cf30[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 30 14:56:02 2025 +0900
+
+    5
+
+[33mcommit 6fc6f2457c504efa44278fdc775eee26396445a7[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 30 10:25:53 2025 +0900
+
+    4
+
+[33mcommit 0a2deafcdb0ed51c90dfb9b5205b8d5ff4a74782[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 16 15:20:44 2025 +0900
+
+    3 - 2 commit's servicekey delete
+
+[33mcommit 9d74b9b1c1919a36b6df6614b17cce8851294a27[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 16 15:11:13 2025 +0900
+
+    2 - little refactor
+
+[33mcommit 5a1e784cb57a6ea0a475bdd5aaf03fc9dc346148[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 16 01:29:35 2025 +0900
+
+    1 - Coming from develop branch 1
+
+[33mcommit 8b53984b03e3c0b0517248b29d6667209c07d7a9[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/feature-A[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Tue Sep 2 16:40:36 2025 +0900
+
+    1
+
+[33mcommit b005adb6838b086944a5c70a58250901c3ff151f[m
+Author: crow000n <crow000n@gmail.com>
+Date:   Wed Aug 27 17:06:05 2025 +0900
+
+    first commit

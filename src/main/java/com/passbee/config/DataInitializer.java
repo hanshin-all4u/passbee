@@ -23,16 +23,24 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // 테스트 사용자 생성
         createTestUser();
-        
+
         // 애플리케이션 시작 시 데이터 수집 로직을 1회 실행합니다.
         scheduledDataCollector.collectAllData();
     }
-    
+
     private void createTestUser() {
         try {
             // 테스트 사용자가 이미 존재하는지 확인
             if (!usersRepository.existsByEmail("test@example.com")) {
-                SignupRequest testUser = new SignupRequest("테스트사용자", "test@example.com", "pass1234");
+
+                // ▼▼▼ [수정] "테스트닉네임" 닉네임을 추가합니다. ▼▼▼
+                SignupRequest testUser = new SignupRequest(
+                        "테스트사용자",
+                        "테스트닉네임", // 닉네임 추가
+                        "test@example.com",
+                        "pass1234"
+                );
+
                 authService.signup(testUser);
                 // 테스트 사용자 생성 완료: test@example.com / pass1234
             }

@@ -19,9 +19,8 @@ public class LicenseService {
     private final QualificationRepository qualificationRepository;
     private final QnetDataService qnetDataService;
 
-    // --- 기존에 있던 데이터 수집 관련 메소드들 (그대로 유지) ---
+    // --- (생략) --- 기존 synchronizeLicenses, enrichLicenseDetails 메소드 ---
 
-    // 이 메소드는 qualification 테이블의 원본 데이터를 license 테이블로 옮기는 역할을 합니다.
     @Transactional
     public void synchronizeLicenses() {
         List<Qualification> qualifications = qualificationRepository.findAll();
@@ -43,7 +42,6 @@ public class LicenseService {
         }
     }
 
-    // License 상세 정보를 가져와 기존 License 엔티티에 추가하는 메소드
     @Transactional
     public void enrichLicenseDetails(License license) {
         List<QualitativeInfoItem> details = qnetDataService.getQualitativeInfo(license.getSeriescd());
@@ -60,12 +58,19 @@ public class LicenseService {
                 });
     }
 
-    /**
-     * API 요청을 위해 모든 자격증 목록을 조회하는 메소드
-     * @return DB에 저장된 모든 License 엔티티 목록
-     */
-    @Transactional(readOnly = true) // 데이터 변경이 없는 조회 전용 트랜잭션
+    @Transactional(readOnly = true)
     public List<License> findAllLicenses() {
         return licenseRepository.findAll();
+    }
+
+    /**
+     * 키워드로 자격증을 검색하는 메소드 (대소문자 무시)
+     * @param keyword 검색할 키워드
+     * @return 검색된 License 엔티티 목록
+     */
+    @Transactional(readOnly = true)
+    public List<License> searchLicenses(String keyword) {
+        // 새로 추가한 IgnoreCase 메소드를 호출합니다.
+        return licenseRepository.findByJmfldnmContainingIgnoreCase(keyword);
     }
 }
