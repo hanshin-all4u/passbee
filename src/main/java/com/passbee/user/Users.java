@@ -2,6 +2,7 @@ package com.passbee.user;
 
 import com.passbee.common.BaseTimeEntity;
 import com.passbee.review.Review;
+import com.passbee.comment.domain.Comment; // ▼▼▼ [추가] import
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -58,6 +59,11 @@ public class Users extends BaseTimeEntity implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Favorite> favorites = new HashSet<>();
+
+    // ▼▼▼ [추가] 사용자가 작성한 댓글 목록 ▼▼▼
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -4,6 +4,7 @@ import com.passbee.common.BaseTimeEntity;
 import com.passbee.license.License;
 import com.passbee.user.Users;
 import com.passbee.attachment.AttachmentFile;
+import com.passbee.comment.domain.Comment; // ▼▼▼ [추가] import
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,4 +38,9 @@ public class Review extends BaseTimeEntity {
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AttachmentFile> files = new ArrayList<>();
+
+    // ▼▼▼ [추가] 댓글 목록 (Review가 삭제되면 댓글도 함께 삭제) ▼▼▼
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 }
