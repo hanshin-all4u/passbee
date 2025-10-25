@@ -2,7 +2,7 @@ package com.passbee.user;
 
 import com.passbee.common.BaseTimeEntity;
 import com.passbee.review.Review;
-import com.passbee.comment.domain.Comment; // ▼▼▼ [추가] import
+import com.passbee.comment.domain.Comment; // Comment import 확인
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,7 +25,7 @@ public class Users extends BaseTimeEntity implements UserDetails {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long id; // 필드명: userId -> id
+    private Long id;
 
     @Column(nullable = false, length = 120)
     private String password;
@@ -42,7 +42,6 @@ public class Users extends BaseTimeEntity implements UserDetails {
     @Column(length = 255)
     private String address;
 
-    // ▼▼▼ [추가] 닉네임 필드 ▼▼▼
     @Column(nullable = false, unique = true)
     private String nickname;
 
@@ -55,19 +54,18 @@ public class Users extends BaseTimeEntity implements UserDetails {
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
-    // ▼▼▼ [추가] 즐겨찾기 목록 필드 ▼▼▼
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<Favorite> favorites = new HashSet<>();
 
-    // ▼▼▼ [추가] 사용자가 작성한 댓글 목록 ▼▼▼
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        // ▼▼▼ [수정] 권한 문자열 앞에 "ROLE_" 접두사를 추가합니다. ▼▼▼
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

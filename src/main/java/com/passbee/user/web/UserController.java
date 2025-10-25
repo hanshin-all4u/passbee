@@ -5,6 +5,7 @@ import com.passbee.user.dto.PasswordUpdateRequestDto;
 import com.passbee.user.dto.UserInfoResponseDto;
 import com.passbee.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement; // SecurityRequirement import
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,21 +18,24 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@Tag(name = "MyPage", description = "마이페이지 (회원 정보) API")
+// ▼▼▼ [수정] 태그 이름 및 경로 변경 ▼▼▼
+@Tag(name = "Users (MyPage)", description = "사용자 정보 (마이페이지) API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/mypage") // 마이페이지 관련 경로는 /api/mypage로 시작
+@RequestMapping("/api/users") // 경로를 /api/users 로 변경
 public class UserController {
 
     private final UserService userService;
 
     /**
-     * 1. 내 정보 조회 (REQ-MEM-004)
+     * 1. 내 정보 조회
      */
-    @Operation(summary = "내 정보 조회")
+    @Operation(summary = "내 정보 조회", security = @SecurityRequirement(name = "JWT TOKEN")) // 인증 필요 명시
+    // ▼▼▼ [수정] 경로를 /me 로 변경 ▼▼▼
     @GetMapping("/me")
     public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
+            // Spring Security 설정으로 인해 이 코드는 거의 도달하지 않지만, 안전장치로 둡니다.
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
         }
 
@@ -40,10 +44,11 @@ public class UserController {
     }
 
     /**
-     * 2. 닉네임 변경 (REQ-MEM-004)
+     * 2. 닉네임 변경
      */
-    @Operation(summary = "닉네임 변경")
-    @PatchMapping("/nickname")
+    @Operation(summary = "닉네임 변경", security = @SecurityRequirement(name = "JWT TOKEN")) // 인증 필요 명시
+    // ▼▼▼ [수정] 경로를 /me/nickname 으로 변경 (또는 PUT /me 로 통합 고려) ▼▼▼
+    @PatchMapping("/me/nickname")
     public ResponseEntity<?> updateNickname(
             @Valid @RequestBody NicknameUpdateRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -56,16 +61,16 @@ public class UserController {
             UserInfoResponseDto updatedUser = userService.updateNickname(userDetails.getUsername(), requestDto);
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
-            // 닉네임 중복 시 409 Conflict
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }
     }
 
     /**
-     * 3. 비밀번호 변경 (REQ-MEM-004)
+     * 3. 비밀번호 변경
      */
-    @Operation(summary = "비밀번호 변경")
-    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 변경", security = @SecurityRequirement(name = "JWT TOKEN")) // 인증 필요 명시
+    // ▼▼▼ [수정] 경로를 /me/password 로 변경 (또는 PUT /me 로 통합 고려) ▼▼▼
+    @PatchMapping("/me/password")
     public ResponseEntity<?> updatePassword(
             @Valid @RequestBody PasswordUpdateRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -78,11 +83,26 @@ public class UserController {
             userService.updatePassword(userDetails.getUsername(), requestDto);
             return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
         } catch (BadCredentialsException e) {
-            // 현재 비밀번호 불일치 시 401 Unauthorized
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
         } catch (IllegalArgumentException e) {
-            // 새 비밀번호가 현재 비밀번호와 같을 때 400 Bad Request
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
         }
+    }
+
+    /**
+     * 4. 회원 탈퇴 (신규 추가)
+     */
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인된 사용자 계정을 삭제합니다.", security = @SecurityRequirement(name = "JWT TOKEN"))
+    // ▼▼▼ [추가] 회원 탈퇴 엔드포인트 ▼▼▼
+    @DeleteMapping("/me")
+    public ResponseEntity<?> deleteAccount(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        userService.deleteUser(userDetails.getUsername());
+        return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 성공적으로 처리되었습니다."));
     }
 }
