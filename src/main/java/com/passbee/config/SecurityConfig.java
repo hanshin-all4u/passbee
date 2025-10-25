@@ -79,7 +79,8 @@ public class SecurityConfig {
                                 "/api/stats/**", // 통계 정보 (필요에 따라 검토)
                                 "/api/qualifications/**", // 자격 정보 (필요에 따라 검토)
                                 "/api/exam-subjects/**", // 시험 과목 정보 (필요에 따라 검토)
-                                "/api/admin/**" // 관리자 데이터 수집 API
+                                "/api/admin/**", // 관리자 데이터 수집 API
+                                "/auth/check-nickname"
                         ).permitAll()
 
                         // 위에서 명시된 경로 외 모든 요청은 인증 필요

@@ -11,6 +11,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -58,5 +59,16 @@ public class AuthService {
 
         // 인증 성공 시, JwtTokenProvider를 사용해 실제 토큰(String)을 생성하여 반환합니다.
         return jwtTokenProvider.createToken(user);
+    }
+
+    // ▼▼▼ [추가] 닉네임 사용 가능 여부 확인 메서드 ▼▼▼
+    @Transactional(readOnly = true)
+    public boolean isNicknameAvailable(String nickname) {
+        // 닉네임이 비어있거나 너무 짧으면 사용 불가능 처리 (선택 사항)
+        if (!StringUtils.hasText(nickname) || nickname.trim().length() < 2) {
+            return false;
+        }
+        // UsersRepository의 existsByNickname 메서드를 호출하여 중복 여부 확인
+        return !usersRepository.existsByNickname(nickname.trim()); // 중복되지 않으면 true (사용 가능)
     }
 }
