@@ -50,19 +50,20 @@ public class SearchService {
         Stream<IntegratedSearchResultDto> licenseStream = licenseResults.stream()
                 .map(IntegratedSearchResultDto::fromLicense);
 
-        // 2. 시험 후기 검색 (페이징 미적용)
+        // 2. 시험 후기 검색 (▼▼▼ [수정] 페이징 적용 ▼▼▼)
         System.out.println("🔍 후기 검색 중...");
-        List<Review> reviewResults = reviewRepository.findByCommentContainingIgnoreCase(query); // Review 타입 확인
-        System.out.println("📋 후기 검색 결과: " + reviewResults.size() + "개");
+        Page<Review> reviewPage = reviewRepository.findByCommentContainingIgnoreCase(query, pageable); // ReviewRepository 수정됨
+        List<Review> reviewResults = reviewPage.getContent();
+        System.out.println("📋 후기 검색 결과 (현재 페이지): " + reviewResults.size() + "개 / 총 " + reviewPage.getTotalElements() + "개");
         Stream<IntegratedSearchResultDto> reviewStream = reviewResults.stream()
                 .map(IntegratedSearchResultDto::fromReview);
 
-        // 3. 공지사항 검색 (페이징 미적용)
+        // 3. 공지사항 검색 (▼▼▼ [수정] 페이징 적용 및 모호성 해결 ▼▼▼)
         System.out.println("🔍 공지사항 검색 중...");
-        // ▼▼▼ 오류 발생 예상 지점 (라인 62 근처) ▼▼▼
-        List<Notice> noticeResults = noticeRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByCreatedAtDesc(query, query); // Notice 타입 확인
-        System.out.println("📋 공지사항 검색 결과: " + noticeResults.size() + "개");
-        // ▼▼▼ 오류 발생 예상 지점 (라인 65 근처) ▼▼▼
+        // 모호성을 유발하던 List 반환 메서드 대신 Page 반환 메서드를 사용합니다.
+        Page<Notice> noticePage = noticeRepository.findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByCreatedAtDesc(query, query, pageable);
+        List<Notice> noticeResults = noticePage.getContent();
+        System.out.println("📋 공지사항 검색 결과 (현재 페이지): " + noticeResults.size() + "개 / 총 " + noticePage.getTotalElements() + "개");
         Stream<IntegratedSearchResultDto> noticeStream = noticeResults.stream()
                 .map(IntegratedSearchResultDto::fromNotice);
 

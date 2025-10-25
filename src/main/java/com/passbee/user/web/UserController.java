@@ -60,6 +60,10 @@ public class UserController {
         try {
             UserInfoResponseDto updatedUser = userService.updateNickname(userDetails.getUsername(), requestDto);
             return ResponseEntity.ok(updatedUser);
+            // ▼▼▼ [추가] 비밀번호 불일치 시 401 (UNAUTHORIZED) 응답 ▼▼▼
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
+            // ▼▼▼ [유지] 닉네임 중복 시 409 (CONFLICT) 응답 ▼▼▼
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", e.getMessage()));
         }

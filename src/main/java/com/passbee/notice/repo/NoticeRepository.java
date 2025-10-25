@@ -13,11 +13,10 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     Page<Notice> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     // 2. 제목 또는 내용에 키워드가 포함된 공지사항 검색 (페이징, 최신순)
-    // NoticeService의 getNoticeList에서 사용
+    // NoticeService의 getNoticeList와 SearchService에서 공통으로 사용
     Page<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByCreatedAtDesc(String titleKeyword, String contentKeyword, Pageable pageable);
 
-    // 3. 제목 또는 내용에 키워드가 포함된 공지사항 검색 (List 반환, 페이징 없음, 최신순)
-    // SearchService의 searchAll에서 사용 (**이 메서드가 List<Notice>를 반환해야 합니다**)
-    List<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByCreatedAtDesc(String titleKeyword, String contentKeyword);
+    // 3. [삭제] 모호성을 유발하던 List 반환 메서드를 삭제합니다.
+    // List<Notice> findByTitleContainingIgnoreCaseOrContentContainingIgnoreCaseOrderByCreatedAtDesc(String titleKeyword, String contentKeyword);
 
 }
