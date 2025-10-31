@@ -48,6 +48,31 @@ dependencies {
     // ▼▼▼ [추가] 아래 2개 의존성을 추가합니다. ▼▼▼
     testImplementation 'com.h2database:h2'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core:10.10.0'      // 이미 들어있다면 버전 맞추기
+    implementation 'org.flywaydb:flyway-mysql:10.10.0'     // ★ 추가
+
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+}
+
+sourceSets {
+    main {
+        java {
+            // A단계(auth)만 먼저 컴파일: 나머지 모두 임시 제외
+            exclude 'com/passbee/license/**'
+            exclude 'com/passbee/exam/**'
+            exclude 'com/passbee/qnet/**'
+            exclude 'com/passbee/review/**'
+            exclude 'com/passbee/favorite/**'
+            exclude 'com/passbee/agency/**'
+            exclude 'com/passbee/search/**'
+            exclude 'com/passbee/scheduler/**'
+            exclude 'com/passbee/statistics/**'
+            exclude 'com/passbee/comment/**'
+            exclude 'com/passbee/attachment/**'
+        }
+    }
 }
 
 tasks.named('test') {

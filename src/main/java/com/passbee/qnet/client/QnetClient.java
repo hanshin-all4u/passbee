@@ -1,8 +1,9 @@
 package com.passbee.qnet.client;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.databind.JavaType;
 import com.passbee.config.QnetProperties;
 import com.passbee.qnet.dto.common.QnetXmlBase;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,64 +11,72 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.StringJoiner;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class QnetClient {
-    private final XmlMapper xmlMapper;
-    private final QnetProperties qnetProperties; // @Value 대신 QnetProperties를 주입받습니다.
 
-    public <T> QnetXmlBase<T> get(String endpoint, Map<String, String> params, Class<T> itemClass) {
-        String responseBody = "";
+    private final QnetProperties qnetProperties;
+    private final XmlMapper xmlMapper = new XmlMapper();
+
+    /** endpointPath: 프로퍼티에서 꺼낸 상대 경로 (예: InquiryStatSVC/getTotExamList) */
+    public <T> QnetXmlBase<T> get(String endpointPath, Map<String,String> params, Class<T> itemClass) {
         try {
-            // 파라미터를 URL 쿼리 스트링으로 변환
-            String queryParams = params.entrySet().stream()
-                    .map(entry -> entry.getKey() + "=" + encode(entry.getValue()))
-                    .collect(Collectors.joining("&"));
+            String url = buildUrl(
+                    qnetProperties.getBaseUrl(),
+                    endpointPath,
+                    qnetProperties.getServiceKey(),
+                    params
+            );
+            log.debug("[QNET] GET {}", url);
 
-            String urlString = String.format("%s/%s?ServiceKey=%s&%s",
-                    qnetProperties.getBaseUrl(), // 프로퍼티 클래스에서 값을 가져옵니다.
-                    endpoint,
-                    encode(qnetProperties.getServiceKey()), // 프로퍼티 클래스에서 값을 가져옵니다.
-                    queryParams);
-
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/xml");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(20000);
 
-            int responseCode = conn.getResponseCode();
-            if (responseCode < 200 || responseCode >= 300) {
-                log.error("HTTP GET request failed for URL: {} with response code: {}", urlString, responseCode);
-                return null;
+            int code = conn.getResponseCode();
+            if (code != 200) {
+                log.error("[QNET] Non-200 response: {}", code);
+                throw new IllegalStateException("QNET HTTP " + code);
             }
 
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                responseBody = br.lines().collect(Collectors.joining(System.lineSeparator()));
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String line; while ((line = br.readLine()) != null) sb.append(line);
             }
-            conn.disconnect();
+            String xml = sb.toString();
 
-            if (responseBody.isEmpty()) {
-                log.warn("Empty response body for URL: {}", urlString);
-                return null;
-            }
+            // QnetXmlBase<T> 제네릭 타입 구성
+            JavaType type = xmlMapper.getTypeFactory()
+                    .constructParametricType(QnetXmlBase.class, itemClass);
 
-            return xmlMapper.readValue(responseBody,
-                    xmlMapper.getTypeFactory().constructParametricType(QnetXmlBase.class, itemClass));
+            return xmlMapper.readValue(xml, type);
 
         } catch (Exception e) {
-            log.error("Failed to process Q-net response for endpoint: {}. Body: {}", endpoint, responseBody, e);
-            throw new IllegalStateException("Q-net 응답 처리 실패: " + e.getMessage(), e);
+            log.error("[QNET] request failed: {}", e.getMessage(), e);
+            return null;
         }
     }
 
-    private String encode(String s) {
-        return URLEncoder.encode(s, StandardCharsets.UTF_8);
+    private static String buildUrl(String baseUrl, String endpoint, String serviceKey, Map<String,String> params) throws Exception {
+        StringJoiner sj = new StringJoiner("&");
+        sj.add("ServiceKey=" + URLEncoder.encode(serviceKey, StandardCharsets.UTF_8));
+        if (params != null) {
+            for (var e : params.entrySet()) {
+                sj.add(URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8));
+            }
+        }
+        String b = baseUrl.replaceAll("/+$","");
+        String ep = endpoint.replaceAll("^/+","");
+        return b + "/" + ep + "?" + sj;
     }
 }

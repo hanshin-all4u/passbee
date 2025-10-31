@@ -1,29 +1,26 @@
 package com.passbee.user;
 
 import com.passbee.common.BaseTimeEntity;
-import com.passbee.review.Review;
-import com.passbee.comment.domain.Comment; // Comment import 확인
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import com.passbee.favorite.domain.Favorite;
 
-
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "users")
 public class Users extends BaseTimeEntity implements UserDetails {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
 
@@ -45,33 +42,39 @@ public class Users extends BaseTimeEntity implements UserDetails {
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    @Builder.Default
+    private boolean emailVerified = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
     private Role role = Role.USER;
 
-    @OneToMany(mappedBy = "user")
-    @Builder.Default
-    private List<Review> reviews = new ArrayList<>();
+    // ===== 연관관계는 나중 단계에서 복구 =====
+    // (review, comment, favorite 패키지가 정리되면 아래를 복구)
+    // @OneToMany(mappedBy = "user")
+    // @Builder.Default
+    // private List<Review> reviews = new ArrayList<>();
+    //
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // @Builder.Default
+    // private Set<Favorite> favorites = new HashSet<>();
+    //
+    // @OneToMany(mappedBy = "user")
+    // @Builder.Default
+    // private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<Favorite> favorites = new HashSet<>();
-
-    @OneToMany(mappedBy = "user")
-    @Builder.Default
-    private List<Comment> comments = new ArrayList<>();
-
+    // ===== UserDetails 구현 =====
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // ▼▼▼ [수정] 권한 문자열 앞에 "ROLE_" 접두사를 추가합니다. ▼▼▼
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
-    public String getUsername() {
-        return email;
-    }
+    public String getUsername() { return email; }
+
+    @Override
+    public String getPassword() { return password; }
 
     @Override
     public boolean isAccountNonExpired() { return true; }
