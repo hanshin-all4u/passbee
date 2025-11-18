@@ -4,7 +4,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.5'
 }
 
-group = 'com.all4u'
+group = 'com.passbee'
 version = '0.0.1-SNAPSHOT'
 description = 'all4u project'
 
@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
@@ -54,26 +54,12 @@ dependencies {
     implementation 'org.flywaydb:flyway-mysql:10.10.0'     // ★ 추가
 
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
-sourceSets {
-    main {
-        java {
-            // A단계(auth)만 먼저 컴파일: 나머지 모두 임시 제외
-            exclude 'com/passbee/license/**'
-            exclude 'com/passbee/exam/**'
-            exclude 'com/passbee/qnet/**'
-            exclude 'com/passbee/review/**'
-            exclude 'com/passbee/favorite/**'
-            exclude 'com/passbee/agency/**'
-            exclude 'com/passbee/search/**'
-            exclude 'com/passbee/scheduler/**'
-            exclude 'com/passbee/statistics/**'
-            exclude 'com/passbee/comment/**'
-            exclude 'com/passbee/attachment/**'
-        }
-    }
-}
+// [!!!] 5개 컨트롤러만 보이게 했던 sourceSets 블록을
+// [!!!] 여기에서 완전히 삭제했습니다.
 
 tasks.named('test') {
     useJUnitPlatform()

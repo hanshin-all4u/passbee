@@ -15,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       # MySQLDialect는 자동 선택되니 아래 줄은 아예 지워도 됩니다.
       # naming.physical-strategy 는 여기가 아니라 바로 아래처럼 지정해야 해요.
     show-sql: true
@@ -35,15 +35,15 @@ spring:
 
   # ✅ 중첩 제거 (mail.mail ❌)
   mail:
-    host: ${SPRING_MAIL_HOST}
-    port: ${SPRING_MAIL_PORT}
-    username: ${SPRING_MAIL_USERNAME}
-    password: ${SPRING_MAIL_PASSWORD}
+    host: localhost
+    port: 1025
     properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
 
 springdoc:
+  # packages-to-scan: com.passbee
+  # paths-to-match: /api/**
   swagger-ui:
     path: /swagger-ui.html
 

@@ -1,14 +1,20 @@
 package com.passbee.user;
 
 import com.passbee.common.BaseTimeEntity;
+import com.passbee.comment.domain.Comment;     // [!!!] ".domain" 경로 수정
+import com.passbee.favorite.domain.Favorite;   // [!!!] ".domain" 경로 수정
+import com.passbee.review.Review;       // (Review는 com.passbee.review.Review가 맞는 것 같습니다)
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -50,19 +56,18 @@ public class Users extends BaseTimeEntity implements UserDetails {
     @Builder.Default
     private Role role = Role.USER;
 
-    // ===== 연관관계는 나중 단계에서 복구 =====
-    // (review, comment, favorite 패키지가 정리되면 아래를 복구)
-    // @OneToMany(mappedBy = "user")
-    // @Builder.Default
-    // private List<Review> reviews = new ArrayList<>();
-    //
-    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    // @Builder.Default
-    // private Set<Favorite> favorites = new HashSet<>();
-    //
-    // @OneToMany(mappedBy = "user")
-    // @Builder.Default
-    // private List<Comment> comments = new ArrayList<>();
+    // ===== 연관관계 (주석 해제됨) =====
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Favorite> favorites = new HashSet<>();
+
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
     // ===== UserDetails 구현 =====
     @Override
