@@ -1,20 +1,20 @@
 package com.passbee.config;
 
 import com.passbee.auth.jwt.JwtAuthenticationFilter;
-import com.passbee.user.UserDetailsServiceImpl;
+import com.passbee.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // HttpMethod import 확인
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-// 메서드 수준 보안 활성화를 위한 import
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,12 +22,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // 메서드 수준 보안 활성화 (@PreAuthorize 사용 위함)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserDetailsService userDetailsService;
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,56 +48,65 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger 경로 허용
+                        // 1. Swagger & 공통 경로
                         .requestMatchers(
-                                "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/swagger-ui.html",
+                                "/hello",
+                                "/actuator/**"
                         ).permitAll()
 
-                        // GET 요청에 대한 공개 경로 설정
-                        .requestMatchers(HttpMethod.GET, "/api/licenses/**").permitAll() // 자격증 목록/상세
-                        .requestMatchers(HttpMethod.GET, "/api/qna/**").permitAll()      // Q&A 목록/상세
-                        .requestMatchers(HttpMethod.GET, "/api/notices/**").permitAll()  // 공지사항 목록/상세
-                        // ▼▼▼ [이 줄 추가] 통합 검색(Search) GET 요청도 허용합니다. ▼▼▼
-                        .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
-
-                        // 기타 인증 없이 접근 가능한 경로
+                        // 2. Auth API (기존 기능 유지)
                         .requestMatchers(
-                                "/auth/**", // 회원가입/로그인
                                 "/api/auth/register",
                                 "/api/auth/login",
+                                "/api/auth/refresh",
                                 "/api/auth/verify-email",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password",
-                                "/api/qnet/**", // QNet 프록시 API (필요에 따라 검토)
-                                "/api/agencies/**", // 기관 정보 (필요에 따라 검토)
-                                "/api/stats/**", // 통계 정보 (필요에 따라 검토)
-                                "/api/qualifications/**", // 자격 정보 (필요에 따라 검토)
-                                "/api/exam-subjects/**", // 시험 과목 정보 (필요에 따라 검토)
-                                "/api/admin/**", // 관리자 데이터 수집 API
-                                "/auth/check-nickname"
+                                "/api/auth/check-nickname"
                         ).permitAll()
 
-                        // 위에서 명시된 경로 외 모든 요청은 인증 필요
+                        // 3. 조회 API (새 기능 추가)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/licenses/**",
+                                "/api/qna/**",
+                                "/api/notices/**",
+                                "/api/search",
+                                "/api/schedules/**",  // 일정 조회
+                                "/api/rankings/**"    // 랭킹 조회
+                        ).permitAll()
+
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 4. 공공 데이터 프록시
+                        .requestMatchers(
+                                "/api/qnet/**",
+                                "/api/agencies/**",
+                                "/api/stats/**",
+                                "/api/qualifications/**",
+                                "/api/exam-subjects/**",
+                                "/api/practical-items/**"
+                        ).permitAll()
+
+                        // 5. 관리자 전용
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // 그 외 인증 필요
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

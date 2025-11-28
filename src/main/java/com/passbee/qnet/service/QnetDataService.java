@@ -3,7 +3,6 @@ package com.passbee.qnet.service;
 import com.passbee.config.QnetProperties;
 import com.passbee.qnet.client.QnetClient;
 import com.passbee.qnet.dto.*;
-import com.passbee.qnet.dto.*;
 import com.passbee.qnet.dto.common.QnetXmlBase;
 import com.passbee.qnet.dto.ExamSubjectItem;
 import lombok.RequiredArgsConstructor;

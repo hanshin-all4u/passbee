@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils; // [수정] Import 추가됨
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -55,7 +56,7 @@ public class AuthService {
                 .build();
 
         usersRepository.save(user);
-        // 이메일 인증 토큰 발급은 컨트롤러에서 createVerificationToken 호출로 처리(개발 편의상 콘솔 출력)
+        // 이메일 인증 토큰 발급은 컨트롤러에서 createVerificationToken 호출로 처리
     }
 
     /** 로그인: 이메일/패스워드 검증 후 access/refresh 발급 */
@@ -66,11 +67,6 @@ public class AuthService {
         if (!passwordEncoder.matches(rawPw, user.getPassword())) {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
-
-        // (선택) 이메일 인증 강제
-        // if (!user.isEmailVerified()) {
-        //     throw new IllegalStateException("이메일 인증이 필요합니다.");
-        // }
 
         String access = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), String.valueOf(user.getRole()));
         String refresh = createAndSaveRefreshToken(user, "login", "");
@@ -89,7 +85,7 @@ public class AuthService {
             // 회전: 기존 토큰 revoke
             rt.setRevoked(true);
             refreshRepo.save(rt);
-            // 새 refresh 발급(필요 시 쿠키 교체 로직과 연계 가능)
+            // 새 refresh 발급
             createAndSaveRefreshToken(user, "rotation", "");
             // 새 Access 반환
             String access = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), String.valueOf(user.getRole()));
@@ -151,8 +147,8 @@ public class AuthService {
                     return true;
                 }).orElse(false);
     }
-}
 
+    // [수정] 클래스 안으로 이동됨
     @Transactional(readOnly = true)
     public boolean isNicknameAvailable(String nickname) {
         if (!StringUtils.hasText(nickname) || nickname.trim().length() < 2) {
@@ -160,3 +156,4 @@ public class AuthService {
         }
         return !usersRepository.existsByNickname(nickname.trim());
     }
+}

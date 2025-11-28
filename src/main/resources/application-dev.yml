@@ -106,8 +106,8 @@ management:
 
 # --- JWT (JSON Web Token) 설정 ---
 jwt:
-  secret: ${JWT_SECRET} # 64바이트 이상의 Base64 인코딩된 문자열 (절대 외부에 노출 금지!)
-  expiration-ms: 3600000 # 토큰 유효 기간 (1시간 = 3600 * 1000 ms)
+  access-secret: ${JWT_SECRET} # 64바이트 이상의 Base64 인코딩된 문자열 (절대 외부에 노출 금지!)
+  access-ttl-ms: 3600000 # 토큰 유효 기간 (1시간 = 3600 * 1000 ms)
 
 app:
   mail:
