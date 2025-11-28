@@ -45,9 +45,12 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // ▼▼▼ [추가] 아래 2개 의존성을 추가합니다. ▼▼▼
     testImplementation 'com.h2database:h2'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql:10.10.0'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {

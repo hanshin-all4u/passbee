@@ -74,6 +74,11 @@ public class SecurityConfig {
                         // 기타 인증 없이 접근 가능한 경로
                         .requestMatchers(
                                 "/auth/**", // 회원가입/로그인
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/verify-email",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
                                 "/api/qnet/**", // QNet 프록시 API (필요에 따라 검토)
                                 "/api/agencies/**", // 기관 정보 (필요에 따라 검토)
                                 "/api/stats/**", // 통계 정보 (필요에 따라 검토)

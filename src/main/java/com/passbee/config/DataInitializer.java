@@ -4,14 +4,14 @@
 package com.passbee.config;
 
 import com.passbee.auth.AuthService;
-import com.passbee.auth.dto.SignupRequest;
+// import com.passbee.auth.dto.SignupRequest; // <-- 이 줄은 이제 필요 없습니다.
 import com.passbee.scheduler.ScheduledDataCollector;
 import com.passbee.user.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-//import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Component; // <-- 이 파일이 컴파일되므로 @Component가 활성화된 것으로 가정합니다.
 
-//@Component
+@Component // <-- 이 파일이 컴파일되므로 @Component가 활성화된 것으로 가정합니다.
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
@@ -33,15 +33,16 @@ public class DataInitializer implements CommandLineRunner {
             // 테스트 사용자가 이미 존재하는지 확인
             if (!usersRepository.existsByEmail("test@example.com")) {
 
-                // ▼▼▼ [수정] "테스트닉네임" 닉네임을 추가합니다. ▼▼▼
-                SignupRequest testUser = new SignupRequest(
-                        "테스트사용자",
-                        "테스트닉네임", // 닉네임 추가
-                        "test@example.com",
-                        "pass1234"
+                // ▼▼▼ [수정] SignupRequest DTO 대신 register 메서드를 직접 호출합니다. ▼▼▼
+                authService.register(
+                        "test@example.com", // email
+                        "pass1234",         // rawPw (비밀번호)
+                        "테스트사용자",       // name (이름)
+                        "테스트닉네임",       // nickname (닉네임)
+                        null,               // phone (전화번호, 선택 사항)
+                        null                // address (주소, 선택 사항)
                 );
 
-                authService.signup(testUser);
                 // 테스트 사용자 생성 완료: test@example.com / pass1234
             }
             // 테스트 사용자가 이미 존재합니다: test@example.com

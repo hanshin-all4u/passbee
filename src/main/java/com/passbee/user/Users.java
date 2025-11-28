@@ -84,4 +84,7 @@ public class Users extends BaseTimeEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() { return true; }
+
+    @Builder.Default
+    private boolean emailVerified = false;
 }

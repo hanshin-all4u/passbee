@@ -38,10 +38,6 @@ public class UserService {
         Users user = usersRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userEmail));
 
-        if (!passwordEncoder.matches(requestDto.password(), user.getPassword())) {
-            throw new BadCredentialsException("현재 비밀번호가 일치하지 않습니다.");
-        }
-
         String newNickname = requestDto.nickname();
 
         // 닉네임 중복 검사
